@@ -11,8 +11,10 @@ Loading example:
 Clone jadeWP into WP root directory
 Add to yor theme functions php:
 
+```php
 include_once ABSPATH.'/jadewp/init_autoloader.php';
 use jadeWP\className\className as className;
 $className = new className();
+```
 
 That's it.
