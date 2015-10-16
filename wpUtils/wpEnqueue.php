@@ -35,7 +35,7 @@ class wpEnqueue {
                 wp_register_script($file['key'], get_template_directory_uri() . $file['url'], $file['deps'], $file['ver'], $footer);
                 wp_enqueue_script($file['key']);
                 if(!empty($file['localize']) && is_array($file['localize']) && sizeof($file['localize'] > 0)) {
-                    wp_localize_script($file['key'], 'WP_'.$file['key'], $file['localize']);
+                    wp_localize_script($file['key'], 'WPURLS', $file['localize']);
                 }
             }
         }
