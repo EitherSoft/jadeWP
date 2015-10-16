@@ -1,14 +1,14 @@
 <?php
 
 /**
- * WPKit class loader
+ * jadeWP class loader
  *
- * @package WPKit
+ * @package jadeWP
  *
- * @link https://github.com/REDINKno/wpkit for the canonical source repository
- * @copyright Copyright (c) 2015, Redink AS
+ * @link https://github.com/jonnSmith/jadeWP for the canonical source repository
+ * @copyright Copyright (c) 2015, iskra.ua
  * @license http://www.opensource.org/licenses/gpl-license.php GPL v2.0 (or later)
- * @author Oleksandr Strikha <alex@pingbull.no>
+ * @author jonnSmith <eugenpushkaroff@gmail.com>
  *
  */
 
