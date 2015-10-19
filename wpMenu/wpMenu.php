@@ -6,7 +6,7 @@ class wpMenu {
 
     public $menuname;
 
-    public function __construct($menuname='menu',$regionname='Menu') {
+    public function __construct($menuname='menu') {
         $this->menuname = $menuname;
         add_action( 'init', array($this, 'registerMenu') );
     }
@@ -33,12 +33,12 @@ class wpMenu {
 
         if ($menuname) {
             $query = $wpdb->get_results("SELECT DISTINCT p.post_title, p.post_excerpt, p.ID, pm.meta_value AS menu_type, ppm.meta_value AS parent, (SELECT count(*) FROM wp_postmeta AS c WHERE c.meta_value = p.ID AND c.meta_key = '_menu_item_menu_item_parent') AS child_count FROM wp_posts AS p
-        INNER JOIN wp_postmeta AS pm ON (pm.post_id = p.ID)
-        INNER JOIN wp_postmeta AS ppm ON (ppm.post_id = p.ID)
+        INNER JOIN wp_postmeta AS pm ON (pm.post_id = p.ID AND pm.meta_key = '_menu_item_type')
+        INNER JOIN wp_postmeta AS ppm ON (ppm.post_id = p.ID AND ppm.meta_key = '_menu_item_menu_item_parent' )
         INNER JOIN wp_terms AS t ON(t.name = '$menuname')
         INNER JOIN wp_term_taxonomy AS tt ON (tt.term_id = t.term_id)
         INNER JOIN wp_term_relationships AS tr ON(tr.term_taxonomy_id = tt.term_taxonomy_id)
-        WHERE p.post_type= 'nav_menu_item' AND p.post_status = 'publish' AND pm.meta_key = '_menu_item_type' AND ppm.meta_key = '_menu_item_menu_item_parent'
+        WHERE p.post_type= 'nav_menu_item' AND p.post_status = 'publish'
         AND ppm.meta_value = $pid
         AND p.ID = tr.object_id
         ORDER BY p.menu_order");

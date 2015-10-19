@@ -19,10 +19,11 @@ class wpPosts {
             'order_by'=>'p.post_date',
             'post_type'=>'post',
             'tax'=>'news',
-            'second_tax'=>false,
+            'taxonomy'=>'category',
             'author'=>false,
             'main'=>false,
-            'current_post'=>false)) {
+            'current_post'=>false,
+            'require_image'=>false)) {
 
         global $wpdb,$shortname;
 
@@ -32,7 +33,7 @@ class wpPosts {
 
         foreach($fileds as $field) {
             $selectFields .= ','.$field;
-            if($field == 'thumb.ID as image') {
+            if($field == 'image.meta_value as image') {
                 $image = true;
             }
             if($field == 'home.meta_value') {
@@ -43,14 +44,9 @@ class wpPosts {
         $query = 'SELECT DISTINCT '.$selectFields.' FROM wp_posts AS p';
 
         if($conditions['tax']) {
-            $query .= ' LEFT JOIN wp_term_relationships AS tr ON (p.ID = tr.object_id)
-            LEFT JOIN wp_term_taxonomy AS tt ON (tr.term_taxonomy_id = tt.term_taxonomy_id)
-            LEFT JOIN wp_terms AS t ON (t.term_id = tt.term_id)';
-            if($conditions['second_tax']) {
-                $query .= ' LEFT JOIN wp_term_relationships AS tr2 ON (p.ID = tr2.object_id)
-                LEFT JOIN wp_term_taxonomy AS tt2 ON (tr2.term_taxonomy_id = tt2.term_taxonomy_id)
-                LEFT JOIN wp_terms AS t2 ON (t2.term_id = tt2.term_id)';
-            }
+            $query .= ' INNER JOIN wp_term_relationships AS tr ON (p.ID = tr.object_id)
+            INNER JOIN wp_term_taxonomy AS tt ON (tr.term_taxonomy_id = tt.term_taxonomy_id AND tt.taxonomy = "' . $conditions['taxonomy'] . '")
+            INNER JOIN wp_terms AS t ON (t.term_id = tt.term_id)';
         }
 
         if($conditions['author']) {
@@ -70,13 +66,16 @@ class wpPosts {
         }
 
         if($image) {
-            $query .= ' LEFT JOIN wp_posts AS thumb  ON ( p.ID = thumb.post_parent AND thumb.post_type = "attachment" AND thumb.post_mime_type LIKE "image%")';
-            $query .= ' LEFT JOIN wp_postmeta AS miniature ON (miniature.meta_key = "_thumbnail_id" and miniature.post_id = p.ID)';
+            $query .= ' LEFT JOIN wp_postmeta AS image ON (image.meta_key = "_thumbnail_id" and image.post_id = p.ID)';
         }
 
-        $query .= ' WHERE p.post_type="'.$conditions['post_type'].'" AND p.post_status = "publish"';
+        $query .= ' WHERE p.post_status = "publish"';
+
+        if($conditions['post_type']) {
+            $query .= ' AND p.post_type="' . $conditions['post_type'] . '" ';
+        }
+
         if($conditions['tax']) {
-            $query .= ' AND tt.taxonomy = "category"';
             $query .= ' AND t.slug = "' . $conditions['tax'] . '"';
             if($conditions['parent']) {
                 $query .= ' OR (SELECT parent.slug FROM wp_terms AS parent WHERE parent.term_id = tt.parent) = "' . $conditions['tax'] . '"';
@@ -102,6 +101,10 @@ class wpPosts {
             $query .= ' AND p.ID !='.intval($conditions['current_post']);
         }
 
+        if($image && $conditions['require_image']) {
+            $query .= ' AND image.meta_value != ""';
+        }
+
         $query .= ' GROUP BY p.ID';
         $query .= ' ORDER BY ' . $conditions['order_by'] . ' ' . $conditions['order_type'] . ' ';
         $query .= ' LIMIT ' . $conditions['offset'] . ', ' . $conditions['limit'] . ' ';
@@ -109,6 +112,7 @@ class wpPosts {
         $postsQuery = $wpdb->get_results($query);
         $posts = $postsQuery;
         wp_reset_query();
+        $wpdb->flush();
         unset($postsQuery);
         return $posts;
 
