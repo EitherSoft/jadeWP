@@ -25,40 +25,42 @@ class wpMenu {
         return $menuLevel;
     }
 
-    private function getMenuLevel($pid=0)
+    private function getMenuLevel($level=0)
     {
         global $wpdb;
 
         $menuname=$this->menuname;
 
         if ($menuname) {
-            $query = $wpdb->get_results("SELECT DISTINCT p.post_title, p.post_excerpt, p.ID, pm.meta_value AS menu_type, ppm.meta_value AS parent, (SELECT count(*) FROM wp_postmeta AS c WHERE c.meta_value = p.ID AND c.meta_key = '_menu_item_menu_item_parent') AS child_count FROM wp_posts AS p
+            $menuQuery = "SELECT DISTINCT p.post_title, p.post_excerpt, p.ID, pm.meta_value AS menu_type, ppm.meta_value AS parent, (SELECT count(*) FROM wp_postmeta AS c WHERE c.meta_value = p.ID AND c.meta_key = '_menu_item_menu_item_parent') AS child_count FROM wp_posts AS p
         INNER JOIN wp_postmeta AS pm ON (pm.post_id = p.ID AND pm.meta_key = '_menu_item_type')
         INNER JOIN wp_postmeta AS ppm ON (ppm.post_id = p.ID AND ppm.meta_key = '_menu_item_menu_item_parent' )
         INNER JOIN wp_terms AS t ON(t.name = '$menuname')
         INNER JOIN wp_term_taxonomy AS tt ON (tt.term_id = t.term_id)
         INNER JOIN wp_term_relationships AS tr ON(tr.term_taxonomy_id = tt.term_taxonomy_id)
         WHERE p.post_type= 'nav_menu_item' AND p.post_status = 'publish'
-        AND ppm.meta_value = $pid
+        AND ppm.meta_value = ".$level."
         AND p.ID = tr.object_id
-        ORDER BY p.menu_order");
+        ORDER BY p.menu_order";
         } else {
-            $query = $wpdb->get_results("SELECT DISTINCT p.post_title, p.post_excerpt, p.ID, pm.meta_value AS menu_type, ppm.meta_value AS parent, (SELECT count(*) FROM wp_postmeta AS c WHERE c.meta_value = p.ID AND c.meta_key = '_menu_item_menu_item_parent') AS child_count FROM wp_posts AS p
+            $menuQuery = "SELECT DISTINCT p.post_title, p.post_excerpt, p.ID, pm.meta_value AS menu_type, ppm.meta_value AS parent, (SELECT count(*) FROM wp_postmeta AS c WHERE c.meta_value = p.ID AND c.meta_key = '_menu_item_menu_item_parent') AS child_count FROM wp_posts AS p
         INNER JOIN wp_postmeta AS pm ON (pm.post_id = p.ID)
         INNER JOIN wp_postmeta AS ppm ON (ppm.post_id = p.ID)
         WHERE p.post_type= 'nav_menu_item' AND p.post_status = 'publish' AND pm.meta_key = '_menu_item_type' AND ppm.meta_key = '_menu_item_menu_item_parent'
-        AND ppm.meta_value = $pid
-        ORDER BY p.menu_order");
+        AND ppm.meta_value = ".$level."
+        ORDER BY p.menu_order";
         }
 
-        $post = $query;
-        unset($query);
-        wp_reset_query();
+        $menuResult = $wpdb->get_results($menuQuery);
+        $menuItems = $menuResult;
 
-        foreach ($post as $nav_item) {
+        wp_reset_query();
+        $wpdb->flush();
+
+        foreach ($menuItems as $nav_item) {
             $nav_item = $this->buildNavItem($nav_item);
         }
-        return $post;
+        return $menuItems;
     }
 
     private function buildNavItem($nav_item) {
@@ -80,17 +82,17 @@ class wpMenu {
         switch ($nav_item->menu_type) {
             case 'custom':
                 $nav_item->title = $nav_item->post_title;
-                $cLink = get_post_meta($nav_item->ID, '_menu_item_url');
-                $nav_item->link = $cLink[0];
+                $cLink = get_post_meta($nav_item->ID, '_menu_item_url', true);
+                $nav_item->link = $cLink;
                 break;
             case 'post_type':
-                $pID = get_post_meta($nav_item->ID, '_menu_item_object_id');
-                if (!empty($nav_item->post_title) && $nav_item->post_title != get_the_title($pID[0])) {
+                $nID = get_post_meta($nav_item->ID, '_menu_item_object_id', true);
+                if (!empty($nav_item->post_title) && $nav_item->post_title != get_the_title($nID)) {
                     $nav_item->title = $nav_item->post_title;
                 } else {
-                    $nav_item->title = get_the_title($pID[0]);
+                    $nav_item->title = get_the_title($nID);
                 }
-                $nav_item->link = get_the_permalink($pID[0]);
+                $nav_item->link = get_the_permalink($nID);
                 break;
             case 'taxonomy':
                 $tID = get_post_meta($nav_item->ID, '_menu_item_object_id');
@@ -105,8 +107,8 @@ class wpMenu {
                 break;
             case 'post_type_archive':
                 $nav_item->title = $nav_item->post_title;
-                $posttype = get_post_meta($nav_item->ID, '_menu_item_object');
-                $nav_item->link = get_post_type_archive_link($posttype[0]);
+                $post_type = get_post_meta($nav_item->ID, '_menu_item_object', true);
+                $nav_item->link = get_post_type_archive_link($post_type);
                 break;
         }
 
@@ -119,6 +121,8 @@ class wpMenu {
         if(!empty($thumbnail)) {
             $nav_item->thumbnail = $thumbnail[0];
         }
+
+        wp_reset_query();
 
         return $nav_item;
     }

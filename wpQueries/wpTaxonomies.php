@@ -10,7 +10,7 @@ class wpTaxonomies {
         $this->exclude_categories = $exclude_categories;
     }
 
-    public function getTaxonomies($postID = 1, $exclude = array(), $taxonomy = false) {
+    public function getTaxonomies($postID = 1, $taxonomy = false, $exclude = array(), $exclude_taxonomy = array()) {
 
         global $wpdb;
 
@@ -23,13 +23,19 @@ class wpTaxonomies {
             $query .= ' AND t.slug NOT IN (' . $this->exclude_categories . ')';
         }
 
-        if(sizeof($exclude) > 0 ) {
+        if(is_array($exclude) && sizeof($exclude) > 0 ) {
             foreach ($exclude as $slug) {
                 $query .= ' AND t.slug != "'.$slug.'"';
             }
         }
 
-        if($taxonomy && sizeof($taxonomy) > 0 ) {
+        if(is_array($exclude_taxonomy) && sizeof($exclude_taxonomy) > 0 ) {
+            foreach ($exclude_taxonomy as $taxonomy) {
+                $query .= ' AND tt.taxonomy != "'.$taxonomy.'"';
+            }
+        }
+
+        if($taxonomy && is_array($taxonomy) && sizeof($taxonomy) > 0 ) {
             foreach ($taxonomy as $tax) {
                 $query .= ' AND tt.taxonomy = "'.$tax.'"';
             }
@@ -40,7 +46,9 @@ class wpTaxonomies {
         $categories = $wpdb->get_results($query);
 
         $tax = $categories;
+
         wp_reset_query();
+        $wpdb->flush();
 
         return $tax;
 

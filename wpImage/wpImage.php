@@ -52,6 +52,10 @@ class wpImage {
         }
 
         $src = $this->siteurl . $size;
+
+        wp_reset_query();
+        $wpdb->flush();
+
         return $src;
 
     }

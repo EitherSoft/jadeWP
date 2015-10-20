@@ -114,8 +114,10 @@ class wpPosts {
 
         $postsQuery = $wpdb->get_results($query);
         $posts = $postsQuery;
+
         wp_reset_query();
         $wpdb->flush();
+
         unset($postsQuery);
         return $posts;
 
