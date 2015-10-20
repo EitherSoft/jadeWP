@@ -43,10 +43,15 @@ class wpPosts {
 
         $query = 'SELECT DISTINCT '.$selectFields.' FROM wp_posts AS p';
 
-        if($conditions['tax']) {
+        if($conditions['taxonomy']) {
             $query .= ' INNER JOIN wp_term_relationships AS tr ON (p.ID = tr.object_id)
             INNER JOIN wp_term_taxonomy AS tt ON (tr.term_taxonomy_id = tt.term_taxonomy_id AND tt.taxonomy = "' . $conditions['taxonomy'] . '")
             INNER JOIN wp_terms AS t ON (t.term_id = tt.term_id)';
+            if($conditions['taxonomy2'] ) {
+                $query .= ' INNER JOIN wp_term_relationships AS tr2 ON (p.ID = tr2.object_id)
+                INNER JOIN wp_term_taxonomy AS tt2 ON (tr2.term_taxonomy_id = tt2.term_taxonomy_id AND tt2.taxonomy = "' . $conditions['taxonomy2'] . '")
+                INNER JOIN wp_terms AS t2 ON (t2.term_id = tt2.term_id)';
+            }
         }
 
         if($conditions['author']) {
@@ -75,15 +80,13 @@ class wpPosts {
             $query .= ' AND p.post_type="' . $conditions['post_type'] . '" ';
         }
 
-        if($conditions['tax']) {
+        if($conditions['tax'] && $conditions['taxonomy']) {
             $query .= ' AND t.slug = "' . $conditions['tax'] . '"';
             if($conditions['parent']) {
                 $query .= ' OR (SELECT parent.slug FROM wp_terms AS parent WHERE parent.term_id = tt.parent) = "' . $conditions['tax'] . '"';
             }
-            if($conditions['second_tax']) {
-                $query .= ' AND tt2.taxonomy = "category"';
-                $query .= ' AND t2.slug != "' . $conditions['tax'] . '"';
-                $query .= ' AND t2.slug NOT IN ('.$this->$exclude.')';
+            if($conditions['tax2'] && $conditions['taxonomy2']) {
+                $query .= ' AND t2.slug = "' . $conditions['tax2'] . '"';
             }
         }
 
