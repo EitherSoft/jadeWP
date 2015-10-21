@@ -30,7 +30,7 @@ class wpRelatedPosts {
                      LEFT JOIN wp_terms AS st ON (st.term_id = stt.term_id)
                      WHERE st.term_id IN ('.$taxonomy_ids.') AND sp.ID = p.ID';
 
-        $query = 'SELECT DISTINCT p.ID, p.post_title, p.post_date, image.meta_value AS image, t.term_id, t.name';
+        $query = 'SELECT DISTINCT p.ID, p.post_title, p.post_date, image.meta_value AS image, t.term_id, t.name, t.slug';
         $query .= ', ('.$subquery.') as equals';
         $query .= ' FROM wp_posts AS p';
         $query .= ' LEFT JOIN wp_postmeta AS image ON (image.meta_key = "_thumbnail_id" and image.post_id = p.ID)';
