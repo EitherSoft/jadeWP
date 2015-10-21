@@ -14,7 +14,7 @@ class wpTaxonomies {
 
         global $wpdb;
 
-        $query = 'SELECT t.term_id, t.name, tt.taxonomy, t.slug FROM wp_term_relationships AS tr';
+        $query = 'SELECT t.term_id, t.name, tt.taxonomy, t.slug, tt.description FROM wp_term_relationships AS tr';
         $query .= ' LEFT JOIN wp_posts AS p ON (p.ID = tr.object_id)';
         $query .= ' LEFT JOIN wp_term_taxonomy AS tt ON (tr.term_taxonomy_id = tt.term_taxonomy_id)';
         $query .= ' LEFT JOIN wp_terms AS t ON (t.term_id = tt.term_id)';
