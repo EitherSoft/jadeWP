@@ -104,6 +104,10 @@ class wpPosts {
             $query .= ' AND p.ID !='.intval($conditions['current_post']);
         }
 
+        if($conditions['date']){
+            $query .= ' AND DATE_FORMAT(p.post_date, "%Y-%m-%d") = "'.$conditions['date'].'" ';
+        }
+
         if($image && $conditions['require_image']) {
             $query .= ' AND image.meta_value != ""';
         }
