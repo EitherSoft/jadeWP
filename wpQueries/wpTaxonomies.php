@@ -54,4 +54,52 @@ class wpTaxonomies {
 
     }
 
+    public function getTaxonomiesIds($postID = 1, $taxonomy = false) {
+
+        global $wpdb;
+
+        $query = 'SELECT t.term_id FROM wp_term_relationships AS tr';
+        $query .= ' LEFT JOIN wp_posts AS p ON (p.ID = tr.object_id)';
+        $query .= ' LEFT JOIN wp_term_taxonomy AS tt ON (tr.term_taxonomy_id = tt.term_taxonomy_id)';
+        $query .= ' LEFT JOIN wp_terms AS t ON (t.term_id = tt.term_id)';
+        $query .= ' WHERE p.ID = '.$postID;
+        if(!empty($this->exclude_categories)) {
+            $query .= ' AND t.slug NOT IN (' . $this->exclude_categories . ')';
+        }
+
+
+        if($taxonomy && is_array($taxonomy) && sizeof($taxonomy) > 0 ) {
+            $i=0;
+            foreach ($taxonomy as $tax) {
+                if(!empty($i)) {
+                    $query .= ' OR tt.taxonomy = "' . $tax . '"';
+                } else {
+                    $query .= ' AND (tt.taxonomy = "' . $tax . '"';
+                }
+                $i++;
+                if($i == sizeof($taxonomy)) $query .= ') ';
+            }
+        }
+
+        $query .= ' GROUP BY t.term_id';
+
+        $categories = $wpdb->get_results($query);
+        $i = 0;
+        $taxonomy_ids = '';
+
+        foreach($categories AS $category) {
+            if(!empty($i)) {
+                $taxonomy_ids .= ',';
+            }
+            $taxonomy_ids .= $category->term_id;
+            $i++;
+        }
+
+        wp_reset_query();
+        $wpdb->flush();
+
+        return $taxonomy_ids;
+
+    }
+
 }
