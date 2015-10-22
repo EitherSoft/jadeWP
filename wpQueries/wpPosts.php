@@ -74,6 +74,12 @@ class wpPosts {
             $query .= ' LEFT JOIN wp_postmeta AS image ON (image.meta_key = "_thumbnail_id" and image.post_id = p.ID)';
         }
 
+        if($conditions['meta'] && is_array($conditions['meta']) && sizeof($conditions['meta']) > 0 ) {
+            foreach($conditions['meta'] as $meta) {
+                $query .= ' LEFT JOIN wp_postmeta AS '.$meta.' ON ('.$meta.'.meta_key = "'.$meta.'" and '.$meta.'.post_id = p.ID)';
+            }
+        }
+
         $query .= ' WHERE p.post_status = "publish"';
 
         if($conditions['post_type']) {
