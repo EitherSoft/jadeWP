@@ -5,9 +5,11 @@ namespace jadeWP\wpQueries;
 class wpPosts {
 
     public $exclude;
+    public $timeformat;
 
-    public function __construct($exclude) {
+    public function __construct($exclude='',$timeformat = false) {
         $this->exclude = $exclude;
+        $this->timeformat = $timeformat;
     }
 
     public function queryPosts(
@@ -32,6 +34,10 @@ class wpPosts {
         $home = false;
 
         foreach($fileds as $field) {
+
+            if($field == 'p.post_date' && !empty($this->timeformat)) {
+                $field = 'DATE_FORMAT(p.post_date, "'.$this->timeformat.'") as post_date';
+            }
             $selectFields .= ','.$field;
             if($field == 'image.meta_value as image') {
                 $image = true;
