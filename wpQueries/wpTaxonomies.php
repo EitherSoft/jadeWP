@@ -102,4 +102,23 @@ class wpTaxonomies {
 
     }
 
+    public function getChilds($slug, $taxonomy) {
+        global $wpdb;
+
+        $query = "SELECT t.term_id, t.slug, t.name FROM $wpdb->term_taxonomy AS tt";
+        $query .= " LEFT JOIN $wpdb->terms AS t ON (t.term_id = tt.term_id)";
+        $query .= " LEFT JOIN $wpdb->term_taxonomy AS ptt ON (ptt.term_id = tt.parent)";
+        $query .= " LEFT JOIN $wpdb->terms AS pt ON (pt.term_id = ptt.term_id)";
+        $query .= " WHERE pt.slug = '$slug'";
+        $query .= " AND tt.taxonomy = '$taxonomy'";
+        $query .= " GROUP BY tt.term_id";
+        $categories = $wpdb->get_results($query);
+
+        wp_reset_query();
+        $wpdb->flush();
+
+        return $categories;
+
+    }
+
 }
