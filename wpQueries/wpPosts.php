@@ -139,4 +139,19 @@ class wpPosts {
 
     }
 
+    public function getMetaAttachment($key, $ID) {
+
+        global $wpdb;
+
+        $query = "SELECT attachment.meta_value as file FROM $wpdb->postmeta AS pm";
+        $query .= " JOIN $wpdb->postmeta as attachment ON (attachment.post_id = pm.meta_value AND attachment.meta_key = '_wp_attached_file')";
+        $query .= " WHERE pm.post_id = $ID";
+        $query .= " AND pm.meta_key = '$key'";
+        $attachment = $wpdb->get_results($query);
+
+        wp_reset_query();
+        $wpdb->flush();
+        return get_site_url().'/wp-content/uploads/'.$attachment[0]->file;
+    }
+
 }
