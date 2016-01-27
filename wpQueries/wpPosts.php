@@ -139,6 +139,52 @@ class wpPosts {
 
     }
 
+    public function queryPost(
+        $fileds = array('p.post_title'),
+        $ID = 1,
+        $attachments = array()){
+
+        global $wpdb;
+        $selectFields = 'p.post_date';
+        $image = false;
+
+        foreach($fileds as $field) {
+
+            if($field == 'p.post_date' && !empty($this->timeformat)) {
+                $field = 'DATE_FORMAT(p.post_date, "'.$this->timeformat.'") as post_date';
+            }
+            $selectFields .= ','.$field;
+            if($field == 'image.meta_value as image') {
+                $image = true;
+            }
+        }
+
+        $query = 'SELECT DISTINCT '.$selectFields.' FROM wp_posts AS p';
+
+        if($image) {
+            $query .= ' LEFT JOIN wp_postmeta AS image ON (image.meta_key = "_thumbnail_id" and image.post_id = p.ID)';
+        }
+
+        if(sizeof($attachments) > 0 ) {
+            foreach($attachments as $attachment) {
+                $query .= " LEFT JOIN $wpdb->postmeta as meta_$attachment ON(meta_$attachment.post_id = $ID AND meta_$attachment.post_id = $ID AND meta_$attachment.meta_key = '$attachment')";
+                $query .= " LEFT JOIN $wpdb->postmeta as $attachment ON ($attachment.post_id = meta_$attachment.meta_value AND $attachment.meta_key = '_wp_attached_file')";
+            }
+        }
+
+        $query .= " WHERE p.post_status = 'publish' AND p.ID = $ID";
+
+        $postQuery = $wpdb->get_results($query);
+        $post = $postQuery;
+
+        wp_reset_query();
+        $wpdb->flush();
+
+        unset($postsQuery);
+        return $post[0];
+
+    }
+
     public function getMetaAttachment($key, $ID) {
 
         global $wpdb;
