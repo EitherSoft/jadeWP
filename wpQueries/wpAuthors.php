@@ -85,7 +85,7 @@ class wpAuthors {
         global $wpdb;
         $query = "SELECT u.ID, u.display_name AS name, u.user_email FROM wp_users AS u
                   LEFT JOIN wp_usermeta AS role ON (u.ID = role.user_id AND role.meta_key = 'wp_capabilities')
-                  WHERE role.meta_value LIKE '%'$role'%'
+                  WHERE role.meta_value LIKE '%$role%'
                   GROUP BY u.ID ";
         $authorsQuery = $wpdb->get_results($query);
         $authors = array();
