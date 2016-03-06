@@ -91,6 +91,7 @@ class wpAuthors {
         $authors = array();
         foreach($authorsQuery as $author) {
             $authors[$author->ID] = array();
+            $authors[$author->ID]['ID'] = $author->ID;
             $authors[$author->ID]['name'] = $author->name;
             $authors[$author->ID]['email'] = $author->user_email;
         }
