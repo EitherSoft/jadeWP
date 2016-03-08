@@ -124,8 +124,20 @@ class wpPosts {
             $query .= ' AND image.meta_value != ""';
         }
 
-        if($conditions['exclude_tax']) {
-            $query .= " AND p.ID NOT IN (SELECT p.ID FROM $wpdb->posts AS p JOIN $wpdb->term_relationships AS tr ON (p.ID = tr.object_id) JOIN $wpdb->term_taxonomy AS tt ON (tr.term_taxonomy_id = tt.term_taxonomy_id) JOIN $wpdb->terms AS t ON (t.term_id = tt.term_id)  WHERE t.slug = '".$conditions['exclude_tax']."')";
+        if($conditions['exclude_tax'] && sizeof($conditions['exclude_tax'] > 0)) {
+
+            $exclude_categories = '';
+            $e = 0;
+            foreach($conditions['exclude_tax'] as $exclude_category) {
+                 if(!$e) {
+                     $exclude_categories .= "WHERE t.slug = '".$exclude_category."'";
+                 } else {
+                     $exclude_categories .= " OR t.slug = '".$exclude_category."'";
+                 }
+                $e++;
+            }
+
+            $query .= " AND p.ID NOT IN (SELECT p.ID FROM $wpdb->posts AS p JOIN $wpdb->term_relationships AS tr ON (p.ID = tr.object_id) JOIN $wpdb->term_taxonomy AS tt ON (tr.term_taxonomy_id = tt.term_taxonomy_id) JOIN $wpdb->terms AS t ON (t.term_id = tt.term_id) ".$exclude_categories.")";
         }
 
         $query .= ' GROUP BY p.ID';
