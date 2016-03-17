@@ -23,6 +23,7 @@ class wpPosts {
             'tax'=>'news',
             'taxonomy'=>'category',
             'author'=>false,
+            'post_by'=>false,
             'main'=>false,
             'current_post'=>false,
             'require_image'=>false)) {
@@ -62,6 +63,14 @@ class wpPosts {
 
         if($conditions['author']) {
             $query .= ' LEFT JOIN wp_users AS u ON (p.post_author = u.ID)';
+            $query .= ' LEFT JOIN wp_postmeta AS meta_site ON (p.ID = meta_site.post_id AND meta_site.meta_key = "name_site")';
+            $query .= ' LEFT JOIN wp_postmeta AS meta_site_url ON (p.ID = meta_site_url.post_id AND meta_site_url.meta_key = "rel_site_url")';
+            $query .= ' LEFT JOIN wp_postmeta AS author_select ON (p.ID = author_select.post_id AND author_select.meta_key = "author_select")';
+            $query .= ' LEFT JOIN wp_postmeta AS author_name ON (p.ID = author_name.post_id AND author_name.meta_key = "author_name")';
+        }
+
+        if($conditions['post_by']) {
+            $query .= ' LEFT JOIN wp_users AS pb ON (p.post_author = pb.ID)';
             $query .= ' LEFT JOIN wp_postmeta AS meta_site ON (p.ID = meta_site.post_id AND meta_site.meta_key = "name_site")';
             $query .= ' LEFT JOIN wp_postmeta AS meta_site_url ON (p.ID = meta_site_url.post_id AND meta_site_url.meta_key = "rel_site_url")';
             $query .= ' LEFT JOIN wp_postmeta AS author_select ON (p.ID = author_select.post_id AND author_select.meta_key = "author_select")';
@@ -138,6 +147,11 @@ class wpPosts {
             }
 
             $query .= " AND p.ID NOT IN (SELECT p.ID FROM $wpdb->posts AS p JOIN $wpdb->term_relationships AS tr ON (p.ID = tr.object_id) JOIN $wpdb->term_taxonomy AS tt ON (tr.term_taxonomy_id = tt.term_taxonomy_id) JOIN $wpdb->terms AS t ON (t.term_id = tt.term_id) ".$exclude_categories.")";
+        }
+
+        if($conditions['post_by']) {
+            $author = $conditions['post_by'];
+            $query .= " AND p.post_author =  $author";
         }
 
         $query .= ' GROUP BY p.ID';
