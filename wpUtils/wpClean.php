@@ -17,12 +17,14 @@ class wpClean {
         $this->filters = $filters;
         if(!is_admin()) {
             add_action('wp_enqueue_scripts', array($this, 'cleanFrontend'));
+            add_action('wp_print_scripts', array($this, 'cleanFrontend') );
             add_action('init', array($this, 'disableEmojis'));
             add_action('widgets_init', array($this, 'removeCommentsStyle'));
             $this->cleanFrontendActions();
             remove_action('wp_head', 'wp_generator');
             remove_action('wp_head', 'rsd_link');
             remove_action('wp_head', 'wlwmanifest_link');
+            add_filter( 'wp_default_scripts',  array($this, 'removeDefault') );
         } else {
             add_action('wp_enqueue_scripts', array($this, 'cleanAdmin'));
             $this->cleanAdminActions();
@@ -31,22 +33,24 @@ class wpClean {
 
     public function cleanFrontend() {
         if (!empty($this->css['frontend']) && is_array($this->css['frontend']) && sizeof($this->css['frontend']) > 0) {
+            wp_deregister_style($this->css['frontend']);
             wp_dequeue_style($this->css['frontend']);
         }
         if (!empty($this->js['frontend']) && is_array($this->js['frontend']) && sizeof($this->js['frontend']) > 0) {
             wp_deregister_script($this->css['frontend']);
+            wp_dequeue_script($this->css['frontend']);
         }
     }
 
     private function cleanFrontendActions() {
         if (!empty($this->actions['frontend']) && is_array($this->actions['frontend']) && sizeof($this->actions['frontend']) > 0) {
-            foreach ($this->actions['frontend'] as $key => $value) {
-                remove_action($key, $value, 1000);
+            foreach ($this->actions['frontend'] as $action) {
+                remove_all_actions($action, 1);
             }
         }
         if (!empty($this->filters['frontend']) && is_array($this->filters['frontend']) && sizeof($this->filters['frontend']) > 0) {
-            foreach ($this->filters['frontend'] as $key => $value) {
-                remove_filter($key, $value);
+            foreach ($this->filters['frontend'] as $filter) {
+                remove_all_filters($filter, 1);
             }
         }
     }
@@ -77,6 +81,13 @@ class wpClean {
     {
         remove_action('wp_head', 'print_emoji_detection_script', 7);
         remove_action('wp_print_styles', 'print_emoji_styles');
+    }
+
+    public function removeDefault( &$scripts){
+        if(!is_admin()){
+            $scripts->remove( 'jquery');
+            $scripts->remove( 'wp-embed');
+        }
     }
 
     public function removeCommentsStyle()
