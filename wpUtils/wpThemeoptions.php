@@ -37,8 +37,8 @@ class wpThemeoptions {
 
             wp_reset_query();
             $wpdb->flush();
-
-            return $themeOptions;
         }
+
+        return $themeOptions;
     }
 }
