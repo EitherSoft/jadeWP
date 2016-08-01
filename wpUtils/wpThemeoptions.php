@@ -31,13 +31,13 @@ class wpThemeoptions {
                 $themeOptions[$optionValue->option_name] = $optionValue->option_value;
             }
 
-            $themeOptions['feed'] = get_feed_link();
-            $themeOptions['site_name'] = get_bloginfo('name');
-            $themeOptions['site_link'] = esc_url(home_url('/'));
-
             wp_reset_query();
             $wpdb->flush();
         }
+
+        $themeOptions['feed'] = get_feed_link();
+        $themeOptions['site_name'] = get_bloginfo('name');
+        $themeOptions['site_link'] = esc_url(home_url('/'));
 
         return $themeOptions;
     }
