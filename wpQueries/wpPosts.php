@@ -25,6 +25,7 @@ class wpPosts {
             'author'=>false,
             'post_by'=>false,
             'main'=>false,
+            'meta_query'=>array(),
             'current_post'=>false,
             'require_image'=>false)) {
 
@@ -77,6 +78,10 @@ class wpPosts {
             $query .= ' LEFT JOIN wp_postmeta AS author_name ON (p.ID = author_name.post_id AND author_name.meta_key = "author_name")';
         }
 
+        if(sizeof($conditions['meta_query']) > 0 && isset($conditions['meta_query']['name']) && isset($conditions['meta_query']['value']) && isset($conditions['meta_query']['key'])) {
+            $query .= ' LEFT JOIN wp_postmeta AS '.$conditions['meta_query']['name'].' ON (p.ID = '.$conditions['meta_query']['name'].'.post_id AND '.$conditions['meta_query']['name'].'.meta_key = "'.$conditions['meta_query']['key'].'")';
+        }
+
         if($conditions['main']) {
             $query .= ' LEFT JOIN wp_postmeta AS meta_main ON (p.ID = meta_main.post_id AND meta_main.meta_key = "'.$shortname.'_main")';
         }
@@ -115,6 +120,10 @@ class wpPosts {
             $query .= ' AND meta_main.meta_value = "true"';
         } else if($conditions['main'] == 'exclude') {
             $query .= ' AND (meta_main.meta_value != "true" OR meta_main.meta_value IS NULL)';
+        }
+
+        if(sizeof($conditions['meta_query']) > 0 && isset($conditions['meta_query']['name']) && isset($conditions['meta_query']['value']) && isset($conditions['meta_query']['key'])) {
+            $query .= ' AND '.$conditions['meta_query']['name'].'.meta_value = "'.$conditions['meta_query']['value'].'"';
         }
 
         if($home) {
